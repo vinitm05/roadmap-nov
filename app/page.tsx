@@ -1,6 +1,17 @@
 "use client";
 import { useState, useEffect } from "react";
 
+interface Problem {
+  name: string;
+  topic: string;
+  difficulty: "Easy" | "Medium" | "Hard";
+  week: number;
+  url?: string;
+  custom?: boolean;
+  phase?: number;
+  note?: string;
+}
+
 const TARGET_DATE = new Date("2026-11-01T00:00:00");
 const START_DATE = new Date("2026-05-11T00:00:00");
 
@@ -99,7 +110,7 @@ const COMPANIES = {
   ],
 };
 
-const SUGGESTED_PROBLEMS = [
+const SUGGESTED_PROBLEMS: Problem[] = [
   { name:"Contains Duplicate", topic:"Arrays & Hashing", difficulty:"Easy", week:1, url:"https://leetcode.com/problems/contains-duplicate/" },
   { name:"Valid Anagram", topic:"Arrays & Hashing", difficulty:"Easy", week:1, url:"https://leetcode.com/problems/valid-anagram/" },
   { name:"Two Sum", topic:"Arrays & Hashing", difficulty:"Easy", week:1, url:"https://leetcode.com/problems/two-sum/" },
@@ -162,7 +173,7 @@ function loadState() {
   } catch { return null; }
 }
 
-function saveState(state) {
+function saveState(state: Record<string, unknown>) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
 }
 
@@ -191,21 +202,21 @@ function useCountdown() {
 
 export default function App() {
   const [tab, setTab] = useState("Overview");
-  const [openPhases, setOpenPhases] = useState({ 1:true });
-  const [openWeekPhases, setOpenWeekPhases] = useState({ 1:true });
+  const [openPhases, setOpenPhases] = useState<Record<number, boolean>>({ 1:true });
+  const [openWeekPhases, setOpenWeekPhases] = useState<Record<number, boolean>>({ 1:true });
   const cd = useCountdown();
 
   const saved = loadState();
-  const [solved, setSolved] = useState(saved?.solved || {});
-  const [notes, setNotes] = useState(saved?.notes || {});
-  const [customProblems, setCustomProblems] = useState(saved?.customProblems || []);
+  const [solved, setSolved] = useState<Record<string, boolean>>(saved?.solved || {});
+  const [notes, setNotes] = useState<Record<string, string>>(saved?.notes || {});
+  const [customProblems, setCustomProblems] = useState<Problem[]>(saved?.customProblems || []);
   const [filterTopic, setFilterTopic] = useState("All");
   const [filterDiff, setFilterDiff] = useState("All");
   const [filterWeek, setFilterWeek] = useState("All");
   const [filterStatus, setFilterStatus] = useState("All");
   const [addingCustom, setAddingCustom] = useState(false);
-  const [newProblem, setNewProblem] = useState({ name:"", topic:"", difficulty:"Medium", week:"1", url:"", note:"" });
-  const [editingNote, setEditingNote] = useState(null);
+  const [newProblem, setNewProblem] = useState<{ name:string; topic:string; difficulty:"Easy"|"Medium"|"Hard"; week:string; url:string; note:string }>({ name:"", topic:"", difficulty:"Medium", week:"1", url:"", note:"" });
+  const [editingNote, setEditingNote] = useState<string | null>(null);
   const [noteText, setNoteText] = useState("");
 
   useEffect(() => {
@@ -249,9 +260,9 @@ export default function App() {
   const solvedCount = Object.values(solved).filter(Boolean).length;
   const totalCount = allProblems.length;
 
-  const toggleSolved = (name) => setSolved(s => ({ ...s, [name]: !s[name] }));
+  const toggleSolved = (name: string) => setSolved(s => ({ ...s, [name]: !s[name] }));
 
-  const startNote = (name, existing) => {
+  const startNote = (name: string, existing: string) => {
     setEditingNote(name);
     setNoteText(existing || "");
   };
@@ -272,7 +283,7 @@ export default function App() {
     setAddingCustom(false);
   };
 
-  const deleteCustom = (name) => {
+  const deleteCustom = (name: string) => {
     setCustomProblems(cp => cp.filter(p => p.name !== name));
     setSolved(s => { const n={...s}; delete n[name]; return n; });
     setNotes(n => { const m={...n}; delete m[name]; return m; });
@@ -298,14 +309,14 @@ export default function App() {
     progressBar: { height:6, background:c.borderInput, borderRadius:999, overflow:"hidden" },
     progressFill: { height:"100%", borderRadius:999, background:"#1D9E75", transition:"width 0.4s" },
     tabs: { display:"flex", gap:4, marginBottom:"1.5rem", borderBottom:`0.5px solid ${c.border}`, paddingBottom:0 },
-    tab: (active) => ({ padding:"8px 16px", fontSize:14, fontWeight: active ? 500 : 400, color: active ? c.text : "#888", background:"none", border:"none", borderBottom: active ? `2px solid ${c.text}` : "2px solid transparent", cursor:"pointer", marginBottom:-1 }),
+    tab: (active: boolean) => ({ padding:"8px 16px", fontSize:14, fontWeight: active ? 500 : 400, color: active ? c.text : "#888", background:"none", border:"none", borderBottom: active ? `2px solid ${c.text}` : "2px solid transparent", cursor:"pointer", marginBottom:-1 }),
     sectionTitle: { fontSize:13, fontWeight:500, color:"#888", letterSpacing:"0.06em", textTransform:"uppercase" as const, marginBottom:"1rem" },
     card: { background:c.surface, border:`0.5px solid ${c.border}`, borderRadius:12, overflow:"hidden", marginBottom:"0.75rem" },
     phaseHeader: { display:"flex", alignItems:"center", gap:12, padding:"1rem 1.25rem", cursor:"pointer", userSelect:"none" as const },
-    dot: (color) => ({ width:10, height:10, borderRadius:"50%", background:color, flexShrink:0 }),
+    dot: (color: string) => ({ width:10, height:10, borderRadius:"50%", background:color, flexShrink:0 }),
     phaseName: { fontSize:15, fontWeight:500, color:c.text },
     phaseSub: { fontSize:13, color:"#888", marginTop:2 },
-    badge: (bg, color) => ({ fontSize:12, padding:"3px 10px", borderRadius:6, fontWeight:500, background:bg, color }),
+    badge: (bg: string, color: string) => ({ fontSize:12, padding:"3px 10px", borderRadius:6, fontWeight:500, background:bg, color }),
     phaseBody: { padding:"1rem 1.25rem", borderTop:`0.5px solid ${c.border}` },
     focusPills: { display:"flex", flexWrap:"wrap" as const, gap:6, marginTop:10 },
     pill: { fontSize:12, padding:"3px 10px", borderRadius:999, border:`0.5px solid ${c.border}`, color: isDark ? "#999" : "#666" },
@@ -338,8 +349,8 @@ export default function App() {
     table: { width:"100%", borderCollapse:"collapse" as const, minWidth:560 },
     th: { fontSize:12, fontWeight:500, color:"#888", textAlign:"left" as const, padding:"8px 12px", borderBottom:`0.5px solid ${c.border}`, textTransform:"uppercase" as const, letterSpacing:"0.05em" },
     td: { fontSize:13, padding:"10px 12px", borderBottom:`0.5px solid ${c.borderLight}`, verticalAlign:"middle" as const },
-    diffBadge: (d) => ({ fontSize:11, padding:"2px 8px", borderRadius:999, fontWeight:500, ...DIFFICULTY_COLORS[d] }),
-    checkBtn: (done) => ({ width:20, height:20, borderRadius:4, border:`1.5px solid ${done?"#1D9E75":c.borderInput}`, background: done ? "#1D9E75" : "transparent", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }),
+    diffBadge: (d: keyof typeof DIFFICULTY_COLORS) => ({ fontSize:11, padding:"2px 8px", borderRadius:999, fontWeight:500, ...DIFFICULTY_COLORS[d] }),
+    checkBtn: (done: boolean) => ({ width:20, height:20, borderRadius:4, border:`1.5px solid ${done?"#1D9E75":c.borderInput}`, background: done ? "#1D9E75" : "transparent", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }),
     noteBtn: { fontSize:12, padding:"3px 8px", border:`0.5px solid ${c.borderInput}`, borderRadius:6, background:c.surface, color:c.textMuted, cursor:"pointer" },
     addBtn: { fontSize:13, padding:"8px 16px", border:`0.5px solid ${c.borderInput}`, borderRadius:8, background:c.surface, color:c.text, cursor:"pointer", display:"flex", alignItems:"center", gap:6 },
     primaryBtn: { fontSize:13, padding:"8px 16px", borderRadius:8, background: isDark ? "#eeeeee" : "#111111", color: isDark ? "#111111" : "#ffffff", border:"none", cursor:"pointer" },
@@ -350,12 +361,12 @@ export default function App() {
     noteModal: { position:"fixed" as const, inset:0, background:"rgba(0,0,0,0.5)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:999 },
     noteBox: { background:c.surface, borderRadius:12, padding:"1.5rem", width:400, maxWidth:"90vw", border:`0.5px solid ${c.border}` },
     noteTitle: { fontSize:15, fontWeight:500, marginBottom:"1rem", color:c.text },
-    phaseDot: (phase) => ({ width:6, height:6, borderRadius:"50%", background: phaseColor[phase], display:"inline-block", marginRight:6, flexShrink:0 }),
+    phaseDot: (phase: keyof typeof phaseColor) => ({ width:6, height:6, borderRadius:"50%", background: phaseColor[phase], display:"inline-block", marginRight:6, flexShrink:0 }),
     themeBtn: { fontSize:13, padding:"6px 12px", border:`0.5px solid ${c.borderInput}`, borderRadius:8, background:c.surfaceAlt, color:c.text, cursor:"pointer" },
   };
 
-  const togglePhase = (id) => setOpenPhases(p => ({ ...p, [id]: !p[id] }));
-  const toggleWeekPhase = (id) => setOpenWeekPhases(p => ({ ...p, [id]: !p[id] }));
+  const togglePhase = (id: number) => setOpenPhases(p => ({ ...p, [id]: !p[id] }));
+  const toggleWeekPhase = (id: number) => setOpenWeekPhases(p => ({ ...p, [id]: !p[id] }));
 
   return (
     <div style={s.wrap}>
@@ -451,7 +462,7 @@ export default function App() {
           <div style={s.sectionTitle}>Week by week</div>
           {[1,2,3,4].map(phaseId => {
             const phaseWeeks = WEEKS.filter(w => w.phase === phaseId);
-            const ph = PHASES.find(p => p.id === phaseId);
+            const ph = PHASES.find(p => p.id === phaseId)!;
             return (
               <div key={phaseId} style={s.card}>
                 <div style={s.phaseHeader} onClick={() => toggleWeekPhase(phaseId)}>
@@ -529,7 +540,7 @@ export default function App() {
                   </div>
                   <div>
                     <div style={s.formLabel}>Difficulty</div>
-                    <select style={s.select} value={newProblem.difficulty} onChange={e => setNewProblem(p => ({...p,difficulty:e.target.value}))}>
+                    <select style={s.select} value={newProblem.difficulty} onChange={e => setNewProblem(p => ({...p,difficulty:e.target.value as "Easy"|"Medium"|"Hard"}))}>
                       <option>Easy</option><option>Medium</option><option>Hard</option>
                     </select>
                   </div>
@@ -572,7 +583,7 @@ export default function App() {
                     </td>
                     <td style={s.td}>
                       <div style={{display:"flex",alignItems:"center",gap:6}}>
-                        <span style={s.phaseDot(p.phase || WEEKS.find(w=>w.w===p.week)?.phase || 1)} />
+                        <span style={s.phaseDot((p.phase || WEEKS.find(w=>w.w===p.week)?.phase || 1) as keyof typeof phaseColor)} />
                         {p.url ? (
                           <a href={p.url} target="_blank" rel="noopener noreferrer" style={{color:"#185FA5",textDecoration:"none",fontWeight:500}}>{p.name}</a>
                         ) : (
